@@ -1,0 +1,35 @@
+#!/bin/sh
+# AppRun for "Android Utility (Linux rewrite)"
+APPDIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+if [ -n "${APPIMAGE:-}" ]; then
+    BASE="$(dirname "$(readlink -f "$APPIMAGE")")"
+else
+    BASE="$(dirname "$APPDIR")"
+fi
+
+# bundled platform-tools first (adb/fastboot)
+export PATH="$APPDIR/usr/share/platform-tools:$PATH"
+# vendored python packages (usb1, pycryptodome, ... for mtkclient)
+export PYTHONPATH="$APPDIR/usr/share/site${PYTHONPATH:+:$PYTHONPATH}"
+export LD_LIBRARY_PATH="$APPDIR/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+# pin the real interpreter so children never inherit the AppImage argv0
+AU_PY="$APPDIR/opt/python3.12/bin/python3.12"
+[ -x "$AU_PY" ] && export AU_PYTHON="$AU_PY"
+
+# Data dir: folder NEXT TO the AppImage (reuses an existing directory,
+# e.g. your working AndroidUtility.v200 folder on the Desktop).
+data="$BASE/AndroidUtility.v200"
+if [ ! -d "$data" ]; then
+    if ! mkdir -p "$data" 2>/dev/null; then
+        data="$HOME/.local/share/AndroidUtility.v200"
+        mkdir -p "$data"
+    fi
+fi
+export AU_DATA="$data"
+
+if [ "${AU_SELFTEST:-}" = "1" ]; then
+    exec "$APPDIR/usr/bin/python" "$APPDIR/usr/share/androidutility/main.py" --selftest
+fi
+
+cd "$data" || exit 1
+exec "$APPDIR/usr/bin/python" "$APPDIR/usr/share/androidutility/main.py" "$@"

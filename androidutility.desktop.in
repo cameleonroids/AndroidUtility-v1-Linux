@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Android Utility
+GenericName=Android repair utility
+Comment=ADB / Fastboot / MediaTek (MTK) repair operations - native Linux rewrite
+Exec=AndroidUtility
+TryExec=AndroidUtility
+Icon=androidutility
+Categories=Utility;Development;System;Electronics;
+StartupNotify=true
+Terminal=false
